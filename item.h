@@ -2,25 +2,20 @@
 
 #include <QString>
 
-enum ItemType
+/*
+II.1. Класс "Предмет". Должен описывать предмет инвентаря и содержать в себе поля:
+Тип предмета, изображение предмета (путь к изображению в ресурсах).
+*/
+class ItemDescription
 {
-    None,
-    Apple
-};
-
-class ItemAbstract
-{
-protected:
-    ItemType type = ItemType::None;
-    QString picturePath;
-    QString soundPath;
 
 public:
-    ItemAbstract(ItemType type, QString picturePath, QString soundPath) :
-        type(type), picturePath(picturePath), soundPath(soundPath)
+    ItemDescription(int type, QString imagePath, QString soundPath) :
+        type(type), imagePath(imagePath), soundPath(soundPath)
     {
     }
 
-    const QString &getPicturePath() const { return this->picturePath; }
-    const QString &getSoundPath() const { return this->soundPath; }
+    const int type;
+    const QString imagePath;
+    const QString soundPath;
 };

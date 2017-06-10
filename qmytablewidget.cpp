@@ -3,9 +3,8 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QHeaderView>
+#include <QSound>
 
-#include "inventory.h"
-#include "item.h"
 #include "database.h"
 
 QMyTableWidget::QMyTableWidget(QWidget *parent) :
@@ -17,21 +16,24 @@ QMyTableWidget::QMyTableWidget(QWidget *parent) :
 
     this->setDragEnabled(true);
     this->setAcceptDrops(true);
+    this->setEnabled(false);
 
     this->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    this->setMaximumSize(302, 302);
+    auto &inv = Inventory::instance();
+    this->setRowCount(inv.rows);
+    this->setColumnCount(inv.cols);
 
-    this->setRowCount(3);
-    this->setColumnCount(3);
-
-    for (int i = 0; i < this->rowCount(); ++i)
+    for (int row = 0; row < this->rowCount(); ++row)
     {
-        for(int j = 0; j < this->columnCount(); ++j)
+        for(int col = 0; col < this->columnCount(); ++col)
         {
-            QTableWidgetItem *protoitem = new QTableWidgetItem(QString(""));
-            protoitem->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
-            this->setItem(i, j, protoitem);
+            QTableWidgetItem *preItem = new QTableWidgetItem(QString(""));
+            preItem->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
+            this->setItem(row, col, preItem);
+
+            auto cell = inv.getCell(row, col);
+            updateCellView(preItem, cell.first, cell.second);            
         }
     }
 
@@ -39,31 +41,46 @@ QMyTableWidget::QMyTableWidget(QWidget *parent) :
     this->verticalHeader()->setVisible(false);
     this->horizontalHeader()->setDefaultSectionSize(100);
     this->verticalHeader()->setDefaultSectionSize(100);
+    this->setIconSize(QSize(75, 75));
+    this->setMaximumSize(302, 302);    
 
-    auto &inv = Inventory::instance();
-
-    QVector<std::tuple<int, int, int, int> > list = DB::Inventory::getCells();
-
-    for (auto &item : list)
-    {
-        const int row = std::get<0>(item) - 1;
-        const int col = std::get<1>(item) - 1;
-        const int type = std::get<2>(item);
-        const int count = std::get<3>(item);
-
-        this->item(row, col)->setText(QString::number(count) );
-
-        inv.setItem(row, col, static_cast<ItemType>(type), count);
-    }
+    connect(this, &QMyTableWidget::itemClicked,
+            this, &QMyTableWidget::on_inventory_clicked);
 }
 
 QMyTableWidget::~QMyTableWidget()
 {
 }
 
+void QMyTableWidget::modelSync(Inventory &inv)
+{
+    this->setRowCount(inv.rows);
+    this->setColumnCount(inv.cols);
+
+    for (int row = 0; row < this->rowCount(); ++row)
+    {
+        for(int col = 0; col < this->columnCount(); ++col)
+        {
+            auto cell = inv.getCell(row, col);
+            updateCellView(this->item(row, col), cell.first, cell.second);
+        }
+    }
+}
+
+void QMyTableWidget::updateCellView(QTableWidgetItem *item, const ItemDescription *type, int count)
+{
+    QString iconPath = type == nullptr ? "" : type->imagePath;
+
+    item->setText(count == 0 ? "" : QString::number(count));
+    item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
+    item->setIcon(QPixmap(iconPath));
+}
+
 // dropEvent(): Drop-event handler
 void QMyTableWidget::dropEvent(QDropEvent *event)
 {
+    auto &inv = Inventory::instance();
+
     const int x = event->pos().x();
     const int y = event->pos().y();
 
@@ -86,21 +103,62 @@ void QMyTableWidget::dropEvent(QDropEvent *event)
 
         int count = roleDataMap[0].toInt();
 
-        auto &inv = Inventory::instance();
-
         if (count > 0)
-        {
-            inv.addItem(item->row(), item->column(), ItemType::Apple, count);
+        {            
+            QPair<const ItemDescription *, int> iDragCell, iDropCell;
+            iDropCell = inv.getCell(item->row(), item->column());
 
             if (event->source() == this)
             {
-                inv.removeItem(row, col);
+                // if it is moving inside one table
+
+                iDragCell = inv.getCell(row, col);
+
+                if(iDropCell.first != nullptr)
+                {
+                    if(iDragCell.first != iDropCell.first)
+                    {
+                        event->ignore();
+                        return;
+                    }
+                }
+
+                inv.setCell(row, col, nullptr, 0);
+            }
+            else
+            {
+                iDragCell = inv.stubInexhaustibleApple();
             }
 
-            QString sum = QString::number(item->text().toInt() + count);
-            item->setText(sum);
+            count += item->text().toInt();
+            inv.setCell(item->row(), item->column(), iDragCell.first, count);
+
+            updateCellView(item, iDragCell.first, count);
         }
     }
 
     event->acceptProposedAction();
+}
+
+void QMyTableWidget::on_inventory_clicked(QTableWidgetItem *item)
+{
+    auto &inv = Inventory::instance();
+
+    int row = item->row();
+    int col = item->column();
+
+    int count = item->text().toInt();
+
+    if(count > 0)
+    {
+        auto cell = inv.getCell(row, col);
+
+        QSound::play(cell.first->soundPath);
+
+        --count;
+        auto type = count == 0 ? nullptr : cell.first;
+        inv.setCell(row, col, type, count);
+
+        updateCellView(item, type, count);
+    }
 }

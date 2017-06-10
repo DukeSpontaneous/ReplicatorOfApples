@@ -4,16 +4,28 @@
 
 #include <QPair>
 #include <QVector>
+#include <QHash>
 
+
+
+/*
+II.2. Класс "Инвентарь". Должен описывать инвентарь и содержать поля размер (количество ячеек), а так же поля,
+описывающие, в какой ячейке сколько находится предметов и каких предметов.
+*/
 class Inventory
 {
+private:
+    QHash<int, const ItemDescription *> descriptions;
+    QVector<QPair<const ItemDescription *, int> > cells;
+
+    QPair<const ItemDescription *, int> inexhaustibleApple;
+
+public:
     int rows;
     int cols;
 
-    QVector<QPair<ItemType, int> > cells;
-
 private:
-    QPair<ItemType, int> &getCell(int row, int col);
+    void dbSync();
 
 public:
     Inventory();
@@ -21,10 +33,9 @@ public:
 
     static Inventory &instance();
 
-    // Only for init
-    void setItem(int row, int col, ItemType item, int count);
+    QPair<const ItemDescription *, int> &getCell(int row, int col);
+    void setCell(int row, int col, const ItemDescription *item, int count);
+    void clean();
 
-    void addItem(int row, int col, ItemType item, int count);
-    void removeItem(int row, int col);
-
+    QPair<const ItemDescription *, int> &stubInexhaustibleApple();
 };

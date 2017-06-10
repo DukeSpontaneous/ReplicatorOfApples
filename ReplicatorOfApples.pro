@@ -1,10 +1,10 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-06-03T18:47:14
+# Project created by QtCreator 2017-06-05T17:51:02
 #
 #-------------------------------------------------
 
-QT += core gui sql
+QT       += core gui multimedia sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,20 +24,23 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-    main.cpp \
-    mainwindow.cpp \
-    qmytablewidget.cpp \
+        main.cpp \
+        mainwindow.cpp \
+    database.cpp \
     inventory.cpp \
-    itemapple.cpp \
-    database.cpp
+    qmytablewidget.cpp
 
 HEADERS += \
-    mainwindow.h \
-    qmytablewidget.h \
+        mainwindow.h \
+    database.h \
     inventory.h \
-    itemapple.h \
-    item.h \
-    database.h
+    qmytablewidget.h \
+    item.h
 
 FORMS += \
-    mainwindow.ui
+        mainwindow.ui
+
+RESOURCES += \
+    images.qrc \
+    sounds.qrc \
+    database.qrc

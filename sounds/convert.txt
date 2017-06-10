@@ -1,0 +1,1 @@
+ffmpeg -i apple.mp3 -acodec pcm_s16le -ar 44100 -ac 2 apple.wav

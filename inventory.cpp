@@ -7,6 +7,8 @@ Inventory::Inventory()
     this->cols = 3;
 
     this->cells.resize(this->rows * this->cols);
+
+    dbSync();
 }
 
 Inventory &Inventory::instance()
@@ -16,38 +18,61 @@ Inventory &Inventory::instance()
 }
 
 // getCell(): get the contents of the inventory cell by row and column
-QPair<ItemType, int> &Inventory::getCell(int row, int col)
+QPair<const ItemDescription *, int> &Inventory::getCell(int row, int col)
 {
     return this->cells[row * this->cols + col];
 }
 
-// setItem(): set the contents of the inventory cell by row and column
-void Inventory::setItem(int row, int col, ItemType item, int count)
+// setCell(): set the contents of the inventory cell by row and column
+void Inventory::setCell(int row, int col, const ItemDescription *item, int count)
 {
-    auto &pair = this->getCell(row, col);
+    QPair<const ItemDescription *, int> &pair = this->getCell(row, col);
 
     pair.first = item;
     pair.second = count;
+
+    DB::Inventory::updateCell(row,
+                              col,
+                              pair.first == nullptr ? 0 : pair.first->type,
+                              pair.second);
 }
 
-// addItem(): increase the number of items in the inventory cell
-void Inventory::addItem(int row, int col, ItemType item, int count)
+void Inventory::clean()
 {
-    auto &pair = this->getCell(row, col);
-
-    pair.first = item;
-    pair.second += count;
-
-    DB::Inventory::updateCell(row, col, pair.first, pair.second);
+    for (int row = 0; row < this->rows; ++row)
+    {
+        for(int col = 0; col < this->cols; ++col)
+        {
+            this->setCell(row, col, nullptr, 0);
+        }
+    }
 }
 
-// removeItem(): remove items from inventory cell
-void Inventory::removeItem(int row, int col)
+// dbSyncInventory(): set the contents of the inventory cell by row and column
+void Inventory::dbSync()
 {
-    auto &pair = this->getCell(row, col);
+    DB::ItemTypes::dbSync(&descriptions);
 
-    pair.first = ItemType::None;
-    pair.second = 0;
+    inexhaustibleApple.first = descriptions[1];
+    inexhaustibleApple.second = 1;
 
-    DB::Inventory::updateCell(row, col, pair.first, pair.second);
+    QVector<std::tuple<int, int, int, int> > list = DB::Inventory::getCells();
+
+    for (auto &item : list)
+    {
+        const int row = std::get<0>(item) - 1;
+        const int col = std::get<1>(item) - 1;
+        const int type = std::get<2>(item);
+        const int count = std::get<3>(item);
+
+        auto &pair = this->getCell(row, col);
+
+        pair.first = descriptions[type];
+        pair.second = count;
+    }
+}
+
+QPair<const ItemDescription *, int> &Inventory::stubInexhaustibleApple()
+{
+    return inexhaustibleApple;
 }

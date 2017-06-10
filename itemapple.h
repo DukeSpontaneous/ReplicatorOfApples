@@ -2,7 +2,7 @@
 
 #include "item.h"
 
-class ItemApple : public ItemAbstract
+class ItemApple : public InventoryItem
 {
 public:    
     ItemApple(QString picturePath, QString soundPath);

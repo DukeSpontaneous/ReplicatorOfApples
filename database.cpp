@@ -1,22 +1,40 @@
 #include "database.h"
 
 #include<QtGlobal>
+#include<QHash>
 
 Database::Database(QString path)
 {
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(path);
 
-    if (false == db.open() )
+    if (db.open() == false)
     {
         qDebug() << db.lastError().text();
         db.close();
     }
 }
 
+Database::~Database()
+{
+    db.close();
+}
+
 QSqlDatabase &Database::instance()
 {
-    static Database database("./database/db.sqlite");
+    if ( ! QFile::exists("./db.sqlite"))
+    {
+        QFile sourceFile( ":/database/db.sqlite" );
+        QFile destFile( "./db.sqlite" );
+        bool success = true;
+        success &= sourceFile.open( QFile::ReadOnly );
+        success &= destFile.open( QFile::WriteOnly | QFile::Truncate );
+        success &= destFile.write( sourceFile.readAll() ) >= 0;
+        sourceFile.close();
+        destFile.close();
+    }
+
+    static Database database("./db.sqlite");
     return database.db;
 }
 
@@ -49,7 +67,7 @@ namespace DB
         }
 
         // updateCell(): update the inventory cell in the database
-        bool updateCell(int row, int col, ItemType type, int count)
+        bool updateCell(int row, int col, int type, int count)
         {
             auto &db = Database::instance();
 
@@ -71,6 +89,25 @@ namespace DB
             }
 
             return res;
+        }
+    }
+
+    namespace ItemTypes
+    {
+        void dbSync(QHash<int, const ItemDescription *> *items)
+        {
+            auto &db = Database::instance();
+
+            QSqlQuery query("SELECT * FROM item_types");
+
+            while (query.next() )
+            {
+                ItemDescription *item = new ItemDescription(
+                            query.value("id").toInt(),
+                            query.value("image").toString(),
+                            query.value("sound").toString());
+                items->insert(item->type, item);
+            }
         }
     }
 }
