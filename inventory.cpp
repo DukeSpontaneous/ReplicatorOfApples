@@ -11,6 +11,14 @@ Inventory::Inventory()
     dbSync();
 }
 
+Inventory::~Inventory()
+{
+    for(auto d : descriptions)
+    {
+        delete d;
+    }
+}
+
 Inventory &Inventory::instance()
 {
     static Inventory inv;
@@ -37,6 +45,7 @@ void Inventory::setCell(int row, int col, const ItemDescription *item, int count
                               pair.second);
 }
 
+//clean(): clear the contents of all inventory cells
 void Inventory::clean()
 {
     for (int row = 0; row < this->rows; ++row)
@@ -72,6 +81,7 @@ void Inventory::dbSync()
     }
 }
 
+// stubInexhaustibleApple(): stub-method to get one apple from the outside
 QPair<const ItemDescription *, int> &Inventory::stubInexhaustibleApple()
 {
     return inexhaustibleApple;

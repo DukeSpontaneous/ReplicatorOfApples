@@ -11,7 +11,6 @@ class QMyTableWidget : public QTableWidget
 
 public:
     explicit QMyTableWidget(QWidget *parent = 0);
-    ~QMyTableWidget();
 
     void modelSync(Inventory &inv);
 

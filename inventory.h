@@ -6,8 +6,6 @@
 #include <QVector>
 #include <QHash>
 
-
-
 /*
 II.2. Класс "Инвентарь". Должен описывать инвентарь и содержать поля размер (количество ячеек), а так же поля,
 описывающие, в какой ячейке сколько находится предметов и каких предметов.
@@ -29,7 +27,7 @@ private:
 
 public:
     Inventory();
-    ~Inventory() = default;
+    ~Inventory();
 
     static Inventory &instance();
 

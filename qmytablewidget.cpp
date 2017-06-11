@@ -48,10 +48,7 @@ QMyTableWidget::QMyTableWidget(QWidget *parent) :
             this, &QMyTableWidget::on_inventory_clicked);
 }
 
-QMyTableWidget::~QMyTableWidget()
-{
-}
-
+// modelSync(): refreshing views of all inventory cells
 void QMyTableWidget::modelSync(Inventory &inv)
 {
     this->setRowCount(inv.rows);
@@ -67,6 +64,7 @@ void QMyTableWidget::modelSync(Inventory &inv)
     }
 }
 
+// updateCellView(): refreshing view of one inventory cell
 void QMyTableWidget::updateCellView(QTableWidgetItem *item, const ItemDescription *type, int count)
 {
     QString iconPath = type == nullptr ? "" : type->imagePath;
@@ -140,6 +138,7 @@ void QMyTableWidget::dropEvent(QDropEvent *event)
     event->acceptProposedAction();
 }
 
+// on_inventory_clicked(): slot for this->itemClicked
 void QMyTableWidget::on_inventory_clicked(QTableWidgetItem *item)
 {
     auto &inv = Inventory::instance();

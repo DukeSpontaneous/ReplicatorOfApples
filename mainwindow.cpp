@@ -7,6 +7,7 @@
 
 #include "inventory.h"
 
+// collapseButton(): animation collapsing button
 void MainWindow::collapseButton(QPushButton *pButton)
 {
     auto gExpand = pButton->geometry();
@@ -21,6 +22,7 @@ void MainWindow::collapseButton(QPushButton *pButton)
     animation->start(QPropertyAnimation::DeleteWhenStopped);
 }
 
+// expandButton(): animation expanding button
 void MainWindow::expandButton(QPushButton *pButton)
 {
     auto gCollapsed = pButton->geometry();
@@ -52,7 +54,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
+// on_buttonStart_clicked(): slot for buttonStart->clicked()
 void MainWindow::on_buttonStart_clicked()
 {
     if(ui->buttonStart->isEnabled() == false)
@@ -73,6 +75,7 @@ void MainWindow::on_buttonStart_clicked()
     myInventory->modelSync(inv);
 }
 
+// on_buttonMainMenu_clicked(): slot for buttonMainMenu->clicked()
 void MainWindow::on_buttonMainMenu_clicked()
 {
     if(ui->buttonMainMenu->isEnabled() == false)
@@ -89,6 +92,7 @@ void MainWindow::on_buttonMainMenu_clicked()
     expandButton(ui->buttonExit);
 }
 
+// on_buttonMainMenu_clicked(): slot for buttonExit->clicked()
 void MainWindow::on_buttonExit_clicked()
 {
     this->close();

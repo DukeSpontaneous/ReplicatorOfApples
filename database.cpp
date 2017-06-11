@@ -94,6 +94,7 @@ namespace DB
 
     namespace ItemTypes
     {
+        //dbSync(): initialize the hash-map of the item descriptions
         void dbSync(QHash<int, const ItemDescription *> *items)
         {
             auto &db = Database::instance();
